@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lect_list/Data/Reprisitory.dart';
 import 'package:lect_list/Data/task.dart';
 
 class WidgetTask extends StatelessWidget {
@@ -32,7 +31,6 @@ class WidgetTask extends StatelessWidget {
       ),
       child: ListTile(
         title: Text(task.title),
-        subtitle: Text(task.discription),
         leading: IconButton(
           icon: Icon(Icons.delete),
           onPressed: () {
@@ -42,7 +40,7 @@ class WidgetTask extends StatelessWidget {
         trailing: Checkbox(
           value: task.isComplete,
           onChanged: (value) {
-            editFun(task , value);
+            editFun(task);
           },
         ),
       ),

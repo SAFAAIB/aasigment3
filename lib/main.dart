@@ -1,16 +1,33 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lect_list/Data/Reprisitory.dart';
+import 'package:lect_list/Data/db_helper.dart';
 import 'package:lect_list/Screens/all_tasks.dart';
 import 'package:lect_list/Screens/complete_tasks.dart';
 import 'package:lect_list/Screens/incomplete-tasks.dart';
+import 'package:lect_list/Screens/new_screen.dart';
+import 'package:lect_list/Screens/spalsh_screen.dart';
 import 'package:lect_list/Widgets/widget_task.dart';
 
 import 'Data/task.dart';
 
 void main() {
   runApp(MaterialApp(
-    home: MyApp(),
+    home: SplashScreen(),
+    // onGenerateRoute: (RouteSettings routeSettings){
+    //   String name = routeSettings.name;
+    //   List<String> routeParts = name.split('/');
+    //   dynamic args = routeSettings.arguments;
+    //
+    //   if (routeParts[0] == 'ss'){
+    //     NewScreenArguments newScreenArguments = NewScreenArguments(
+    //       taskName: routeParts[1],
+    //       taskIsComlete: routeParts[2]
+    //     );
+    //     return MaterialPageRoute(builder: (context){
+    //       return NewScreen(newScreenArguments: newScreenArguments,);
+    //     });
+    //   }
+    // },
   ));
 }
 
@@ -95,6 +112,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<StatefulWidget>
     with SingleTickerProviderStateMixin {
   String title = '';
+  List<Task> allTasks;
 
   // String title1 = 'First title';
   // String title2 = 'Second title';
@@ -106,19 +124,29 @@ class MyAppState extends State<StatefulWidget>
   void initState() {
     super.initState();
     controller = TabController(length: 3, vsync: this);
+    getAllFunction();
   }
 
-  deleteFunction(Task task) {
-    Reprisitory.tasks.remove(task);
+  deleteFunction(Task task) async {
+    await DBHelper.dbHelper.deleteTask(task.id);
+    await getAllFunction();
+  }
+
+  editFunction(Task task) async {
+    await DBHelper.dbHelper.upDateTask(task);
+    await getAllFunction();
+  }
+
+  getAllFunction() async {
+    List<Task> tasks = await DBHelper.dbHelper.getAllTasks();
+    this.allTasks = tasks;
     setState(() {});
   }
 
-  editFunction(Task task, bool value) {
-    task.isComplete = value;
-    setState(() {});
+  addFunc(Task task) async {
+    await DBHelper.dbHelper.insertTask(task);
+    await getAllFunction();
   }
-
-  addFunc(){}
 
   @override
   Widget build(BuildContext context) {
@@ -210,15 +238,19 @@ class MyAppState extends State<StatefulWidget>
       //     ],
       //   ),
       // ),
-      body: TabBarView(
-        // physics: NeverScrollableScrollPhysics(),
-        controller: controller,
-        children: [
-          AllTasks(deleteFunction, editFunction, Reprisitory.tasks),
-          CompleteTasks(deleteFunction, editFunction, Reprisitory.tasks),
-          InCompleteTasks(deleteFunction, editFunction, Reprisitory.tasks),
-        ],
-      ),
+      body: allTasks == null
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : TabBarView(
+              // physics: NeverScrollableScrollPhysics(),
+              controller: controller,
+              children: [
+                AllTasks(deleteFunction, editFunction, allTasks),
+                CompleteTasks(deleteFunction, editFunction, allTasks),
+                InCompleteTasks(deleteFunction, editFunction, allTasks),
+              ],
+            ),
 
       bottomNavigationBar: BottomAppBar(
         color: Colors.indigo,
@@ -240,12 +272,12 @@ class MyAppState extends State<StatefulWidget>
           ],
         ),
       ),
-      floatingActionButton : FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Reprisitory.tasks.add(Task(title: 'New task' , discription: 'this is a new task' , isComplete: false));
-          setState(() {
-
-          });
+          addFunc(Task('Hello', false));
+          // Navigator.pushNamed(context, 'ss/safaa/true');
+          // Reprisitory.tasks.add(Task(title: 'New task' , discription: 'this is a new task' , isComplete: false));
+          setState(() {});
         },
         child: Icon(Icons.create),
       ),
